@@ -1,0 +1,5 @@
+*.~
+*.swp
+
+# Python build
+build/*
