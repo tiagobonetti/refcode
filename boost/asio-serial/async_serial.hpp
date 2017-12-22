@@ -1,15 +1,11 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
 #include <boost/shared_array.hpp>
-#include <boost/thread.hpp>
 #include <boost/utility.hpp>
 
+#include <functional>
 #include <vector>
-
-class async_serial_impl;
 
 class async_serial : private boost::noncopyable {
    public:
@@ -19,62 +15,61 @@ class async_serial : private boost::noncopyable {
     using flow_control = boost::asio::serial_port_base::flow_control;
     using stop_bits = boost::asio::serial_port_base::stop_bits;
 
-    async_serial();
+    async_serial(boost::asio::io_service& io);
 
-    async_serial(const std::string& devname,
-                 unsigned int baud_rate,
-                 parity opt_parity = parity(parity::none),
-                 character_size opt_csize = character_size(8),
-                 flow_control opt_flow = flow_control(flow_control::none),
-                 stop_bits opt_stop = stop_bits(stop_bits::one));
+    async_serial(boost::asio::io_service& io,
+                 const std::string& devname,
+                 baud_rate baud_rate_,
+                 parity parity_,
+                 character_size character_size_,
+                 flow_control flow_control_,
+                 stop_bits stop_bits_);
+
+    ~async_serial();
 
     void open(const std::string& devname,
-              unsigned int baud_rate,
-              parity opt_parity = parity(parity::none),
-              character_size opt_csize = character_size(8),
-              flow_control opt_flow = flow_control(flow_control::none),
-              stop_bits opt_stop = stop_bits(stop_bits::one));
+              baud_rate baud_rate_,
+              parity parity_,
+              character_size character_size_,
+              flow_control flow_control_,
+              stop_bits stop_bits_);
 
-    bool is_open() const;
-    bool error_status() const;
     void close();
+
     void write(const char* data, size_t size);
     void write(const std::vector<char>& data);
     void write_string(const std::string& s);
 
-    virtual ~async_serial() = 0;
+    bool is_open() const { return open_; }
+    bool is_error() const { return error_; };
 
-    static const int readBufferSize = 512;
+    void set_read_callback(std::function<void(const char*, std::size_t)> callback_) { callback = callback_; }
+    void clear_read_callback() { callback = nullptr; }
+
+    boost::asio::io_service& io;
 
    private:
     void do_read();
-    void read_end(const boost::system::error_code& error, size_t bytes_transferred);
+    void do_read_end(const boost::system::error_code& error, size_t bytes_transferred);
 
     void do_write();
-    void write_end(const boost::system::error_code& error);
+    void do_write_end(const boost::system::error_code& error);
+
     void do_close();
 
-    boost::shared_ptr<async_serial_impl> pimpl;
+    void set_open(bool o) { open_ = o; }
+    void set_error(bool e) { error_ = e; }
 
-   protected:
-    void set_error_status(bool e);
-    void set_read_callback(const boost::function<void(const char*, size_t)>& callback);
-    void clear_read_callback();
-};
+    boost::asio::serial_port port;
 
-class callback_async_serial : public async_serial {
-   public:
-    callback_async_serial();
+    bool open_;
+    bool error_;
+    std::vector<char> writer_queue;
 
-    callback_async_serial(const std::string& devname,
-                          unsigned int baud_rate,
-                          parity opt_parity = parity(parity::none),
-                          character_size opt_csize = character_size(8),
-                          flow_control opt_flow = flow_control(flow_control::none),
-                          stop_bits opt_stop = stop_bits(stop_bits::one));
+    boost::shared_array<char> write_buffer;
+    std::size_t write_buffer_size;
 
-    void set_callback(const boost::function<void(const char*, size_t)>& callback);
-    void clear_callback();
+    char read_buffer[512];
 
-    virtual ~callback_async_serial();
+    std::function<void(const char*, std::size_t)> callback;
 };
