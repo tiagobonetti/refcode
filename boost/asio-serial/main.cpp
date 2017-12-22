@@ -20,7 +20,6 @@ int main(int argc, char* argv[]) {
             serial.close();
         });
 
-
         io.run();
     } catch (boost::system::system_error& e) {
         std::cout << "Error: " << e.what() << '\n';

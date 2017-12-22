@@ -75,13 +75,15 @@ void async_serial::close() {
 }
 
 std::size_t async_serial::read(char* data, std::size_t size) {
-    std::size_t result = std::min(size, read_queue.size());
+    std::size_t read_size = std::min(size, read_queue.size());
 
-    std::vector<char>::iterator it = read_queue.begin() + result;
-    std::copy(read_queue.begin(), it, data);
-    read_queue.erase(read_queue.begin(), it);
+    auto begin = std::begin(read_queue);
+    auto end = begin + read_size;
 
-    return result;
+    std::copy(begin, end, data);
+    read_queue.erase(begin, end);
+
+    return read_size;
 }
 
 std::vector<char> async_serial::read() {
@@ -91,20 +93,24 @@ std::vector<char> async_serial::read() {
 }
 
 std::string async_serial::read_string() {
-    std::string result(read_queue.begin(), read_queue.end());
+    std::string result(std::begin(read_queue), std::end(read_queue));
     read_queue.clear();
     return result;
 }
 
-std::string async_serial::read_string_until(const std::string delim) {
-    std::vector<char>::iterator it = find_string_in_vector(read_queue, delim);
-    if (it == read_queue.end()) {
+std::string async_serial::read_string_until(const std::string delimiter) {
+    auto begin = std::begin(read_queue);
+    auto it = std::search(std::begin(read_queue), std::end(read_queue), std::begin(delimiter), std::end(delimiter));
+    if (it == std::end(read_queue)) {
         return "";
     }
 
-    std::string result(read_queue.begin(), it);
-    it += delim.size();  //Do remove the delimiter from the queue
-    read_queue.erase(read_queue.begin(), it);
+    std::string result(std::begin(read_queue), it);
+
+    // Remove the delimiter from the queue
+    it += delimiter.size();
+    // Remove result from queue
+    read_queue.erase(std::begin(read_queue), it);
 
     return result;
 }
@@ -141,92 +147,55 @@ void async_serial::do_close() {
 void async_serial::do_read() {
     port.async_read_some(boost::asio::buffer(read_buffer, sizeof(read_buffer)),
                          [this](const boost::system::error_code& error, std::size_t bytes_transferred) {
-                             do_read_end(error, bytes_transferred);
+                             handle_read(error, bytes_transferred);
                          });
 }
 
-void async_serial::do_read_end(const boost::system::error_code& error, std::size_t bytes_transferred) {
+void async_serial::handle_read(const boost::system::error_code& error, std::size_t bytes_transferred) {
     if (error == boost::system::errc::operation_canceled) {
         return;
     }
 
-    boost::asio::detail::throw_error(error, "async_serial::do_read_end");
+    if (error) {
+        set_error(true);
+        throw boost::system::system_error(error, "async_serial::handle_read");
+    }
 
-    read_callback(read_buffer, bytes_transferred);
+    auto begin = std::begin(read_buffer);
+    auto end = begin + bytes_transferred;
+    read_queue.insert(std::end(read_queue), begin, end);
     do_read();
 }
 
 void async_serial::do_write() {
-    //If a write operation is already in progress, do nothing
-    if (write_buffer == 0) {
-        write_buffer_size = writer_queue.size();
-        write_buffer.reset(new char[writer_queue.size()]);
-        std::copy(writer_queue.begin(), writer_queue.end(), write_buffer.get());
-        writer_queue.clear();
-
-        boost::asio::async_write(port,
-                                 boost::asio::buffer(write_buffer.get(), write_buffer_size),
-                                 [this](const boost::system::error_code& error, std::size_t) {
-                                     do_write_end(error);
-                                 });
-    }
-}
-
-void async_serial::do_write_end(const boost::system::error_code& error) {
-    if (error) {
-        set_error(true);
-        do_close();
-    }
-
+    // If queue is empty, do nothing
     if (writer_queue.empty()) {
-        write_buffer.reset();
-        write_buffer_size = 0;
+        return;
+    }
+    // If a write operation is already in progress, do nothing
+    if (!writer_buffer.empty()) {
         return;
     }
 
-    write_buffer_size = writer_queue.size();
-    write_buffer.reset(new char[writer_queue.size()]);
-    std::copy(writer_queue.begin(), writer_queue.end(), write_buffer.get());
-    writer_queue.clear();
-
+    std::swap(writer_queue, writer_buffer);
     boost::asio::async_write(port,
-                             boost::asio::buffer(write_buffer.get(), write_buffer_size),
+                             boost::asio::buffer(writer_buffer, writer_buffer.size()),
                              [this](const boost::system::error_code& error, std::size_t) {
-                                 do_write_end(error);
+                                 handle_write(error);
                              });
 }
 
-void async_serial::read_callback(const char* data, std::size_t len) {
-    read_queue.insert(read_queue.end(), data, data + len);
-}
-
-std::vector<char>::iterator async_serial::find_string_in_vector(std::vector<char>& v, const std::string& s) {
-    if (s.size() == 0) {
-        return v.end();
+void async_serial::handle_write(const boost::system::error_code& error) {
+    if (error == boost::system::errc::operation_canceled) {
+        return;
     }
 
-    std::vector<char>::iterator it = v.begin();
-    for (;;) {
-        std::vector<char>::iterator result = find(it, v.end(), s[0]);
-        if (result == v.end()) {
-            return v.end();  //If not found return
-        }
-
-        for (std::size_t i = 0; i < s.size(); i++) {
-            std::vector<char>::iterator temp = result + i;
-
-            if (temp == v.end()) {
-                return v.end();
-            }
-
-            if (s[i] != *temp) {
-                goto mismatch;
-            }
-        }
-        //Found
-        return result;
-
-    mismatch:
-        it = result + 1;
+    if (error) {
+        set_error(true);
+        throw boost::system::system_error(error, "async_serial::handle_read");
     }
+
+    // clean written buffer and try to keep writing
+    writer_buffer.clear();
+    do_write();
 }

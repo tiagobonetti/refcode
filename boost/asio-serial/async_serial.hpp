@@ -1,13 +1,10 @@
 #pragma once
 
 #include <boost/asio.hpp>
-#include <boost/shared_array.hpp>
-#include <boost/utility.hpp>
 
-#include <functional>
 #include <vector>
 
-class async_serial : private boost::noncopyable {
+class async_serial {
    public:
     using baud_rate = boost::asio::serial_port_base::baud_rate;
     using parity = boost::asio::serial_port_base::parity;
@@ -24,6 +21,14 @@ class async_serial : private boost::noncopyable {
                  flow_control flow_control_ = flow_control(flow_control::none),
                  stop_bits stop_bits_ = stop_bits(stop_bits::one));
     ~async_serial();
+
+    // Copy disabled
+    async_serial(const async_serial& other) = delete;
+    async_serial& operator=(const async_serial& other) = delete;
+
+    // Moves are allowed
+    async_serial(async_serial&& other) = default;
+    async_serial& operator=(async_serial&& other) = default;
 
     // Open/Close
     void open(const std::string& devname,
@@ -56,14 +61,10 @@ class async_serial : private boost::noncopyable {
     void set_error(bool e) { error_ = e; }
 
     void do_read();
-    void do_read_end(const boost::system::error_code& error, size_t bytes_transferred);
+    void handle_read(const boost::system::error_code& error, size_t bytes_transferred);
 
     void do_write();
-    void do_write_end(const boost::system::error_code& error);
-
-    void read_callback(const char* data, std::size_t len);
-
-    static std::vector<char>::iterator find_string_in_vector(std::vector<char>& v, const std::string& s);
+    void handle_write(const boost::system::error_code& error);
 
     boost::asio::io_service& io;
     boost::asio::serial_port port;
@@ -71,9 +72,8 @@ class async_serial : private boost::noncopyable {
     bool open_;
     bool error_;
 
+    std::vector<char> writer_buffer;
     std::vector<char> writer_queue;
-    boost::shared_array<char> write_buffer;
-    std::size_t write_buffer_size;
 
     char read_buffer[512];
     std::vector<char> read_queue;
