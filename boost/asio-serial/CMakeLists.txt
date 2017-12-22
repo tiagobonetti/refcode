@@ -9,6 +9,6 @@ find_package(Boost COMPONENTS REQUIRED thread date_time system)
 find_package(Threads REQUIRED)
 
 add_definitions("-std=c++11")
-add_executable(serial main.cpp async_serial.cpp buffered_async_serial.cpp)
+add_executable(serial main.cpp async_serial.cpp)
 
 target_link_libraries(serial ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

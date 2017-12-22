@@ -1,4 +1,4 @@
-#include "buffered_async_serial.hpp"
+#include "async_serial.hpp"
 
 #include "log.hpp"
 
@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     boost::asio::io_service io;
     try {
         boost::asio::deadline_timer timer(io);
-        buffered_async_serial serial(io, "/dev/ttyUSB0");
+        async_serial serial(io, "/dev/ttyUSB0");
 
         serial.write_string("ls\n");
 
