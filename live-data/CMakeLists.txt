@@ -5,4 +5,5 @@ add_definitions("-std=c++11")
 add_executable(test
     src/main.cpp
     src/token.cpp
+    src/live/value.cpp
     )

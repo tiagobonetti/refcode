@@ -1,9 +1,9 @@
-#include "live_data.hpp"
+#include "live/value.hpp"
 #include "token.hpp"
 
 #include <iostream>
 
 int main() {
-    live_data<int> v = 5;
-    std::cout << v.set(7).value << '\n';
+    live::value<int> v = 5;
+    std::cout << v.set_value(7).get_value() << '\n';
 }
