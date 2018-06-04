@@ -1,9 +1,10 @@
-#include "live/value.hpp"
+#include "observable/value.hpp"
 #include "token.hpp"
 
 #include <iostream>
 
 int main() {
-    live::value<int> v = 5;
-    std::cout << v.set_value(7).get_value() << '\n';
+    observable::value<int> v = 9;
+    auto t = v.observe([](int value) { std::cout << "value:" << value << '\n'; });
+    v.remove_observer(t);
 }
