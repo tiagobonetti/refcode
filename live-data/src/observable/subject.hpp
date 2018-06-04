@@ -5,7 +5,7 @@
 #include <functional>
 #include <memory>
 #include <tuple>
-#include <map>
+#include <unordered_map>
 
 namespace observable {
 
@@ -30,7 +30,7 @@ class subject {
     }
 
    private:
-    std::map<token, handler_type> _observers;
+    std::unordered_map<token, handler_type> _observers;
 };
 
 }  // namespace observable

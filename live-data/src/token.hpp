@@ -18,7 +18,8 @@ struct token {
 
     static token unique() { return token{++_count}; }
 
-    friend std::ostream& operator<<(std::ostream& os, const token& k);
+    friend std::ostream& operator<<(std::ostream& os, token const& k);
+    friend class std::hash<token>;
 
    private:
     token(value_type value) : _value(value) {}
@@ -27,4 +28,11 @@ struct token {
     static value_type _count;
 };
 
-std::ostream& operator<<(std::ostream& os, const token& k);
+std::ostream& operator<<(std::ostream& os, token const& k);
+
+namespace std {
+template <>
+struct hash<token> {
+    constexpr size_t operator()(token const& t) const { return t._value; }
+};
+}  // namespace std
