@@ -1,6 +1,7 @@
 #pragma once
 
-#include "token.hpp"
+#include "observable/removable.hpp"
+#include "observable/token.hpp"
 
 #include <cstddef>
 #include <functional>
@@ -10,11 +11,6 @@
 #include <unordered_map>
 
 namespace observable {
-
-class removable {
-   public:
-    virtual bool remove_observer(token t) = 0;
-};
 
 template <typename T>
 class value : public removable {
@@ -27,8 +23,8 @@ class value : public removable {
     value(value const& other) = delete;
     value& operator=(value const& other) = delete;
 
-    value(value&& other) = default;
-    value& operator=(value&& other) = default;
+    value(value&& other) = delete;
+    value& operator=(value&& other) = delete;
 
     T const& get_value() { return _value; }
 
@@ -38,13 +34,12 @@ class value : public removable {
     template <typename Handler>
     token observe(Handler&& handler);
 
-    bool remove_observer(token t) { return _observers.erase(t) > 0; }
-
    private:
+    bool remove_observer(std::size_t key) { return _observers.erase(key) > 0; }
     void notify() const;
 
     T _value;
-    std::unordered_map<token, handler_type> _observers;
+    std::unordered_map<token::key_type, handler_type> _observers;
 };
 
 template <typename T>
@@ -65,16 +60,17 @@ token value<T>::observe(Handler&& handler) {
         return {};
     }
 
+    auto key = token::unique_key();
+
     typename decltype(_observers)::const_iterator it;
     bool inserted;
-    std::tie(it, inserted) = _observers.emplace(
-        token::unique(), std::forward<Handler>(handler));
+    std::tie(it, inserted) = _observers.emplace(key, std::forward<Handler>(handler));
 
     if (!inserted) {
         return {};
     }
 
-    return it->first;
+    return token{*this, key};
 }
 
 template <typename T>

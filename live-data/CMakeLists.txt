@@ -4,7 +4,7 @@ project(live-data)
 add_definitions("-std=c++11")
 include_directories(src)
 add_executable(test
-    src/main.cpp
-    src/token.cpp
+    src/observable/token.cpp
     src/observable/value.cpp
+    src/main.cpp
     )
