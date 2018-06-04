@@ -1,50 +1,87 @@
 #pragma once
 
-#include "subject.hpp"
+#include "token.hpp"
 
 #include <cstddef>
+#include <functional>
+#include <memory>
 #include <sstream>
+#include <tuple>
+#include <unordered_map>
 
 namespace observable {
 
-template <typename T>
-class value {
+class removable {
    public:
-    using subject_type = subject<T>;
-    using handler_type = typename subject_type::handler_type;
+    virtual bool remove_observer(token t) = 0;
+};
 
-    value(T&& v) : _value(std::forward<T>(v)) {}
+template <typename T>
+class value : public removable {
+   public:
+    using handler_type = std::function<void(T const&)>;
 
-    T const& get_value() {
-        return _value;
-    }
+    template <typename Value>
+    value(Value&& v) : _value(std::forward<Value>(v)) {}
 
-    value<T>& set_value(T&& v) {
-        decltype(_value) new_value = std::forward<T>(v);
+    value(value const& other) = delete;
+    value& operator=(value const& other) = delete;
 
-        if (_value != new_value) {
-            _value = new_value;
-            notify();
-        }
+    value(value&& other) = default;
+    value& operator=(value&& other) = default;
 
-        return *this;
-    }
+    T const& get_value() { return _value; }
 
-    token observe(handler_type cb) {
-        if (!cb) {
-            return {};
-        }
+    template <typename Value>
+    void set_value(Value&& v);
 
-        cb(_value);
-        return _subject.observe(cb);
-    }
+    template <typename Handler>
+    token observe(Handler&& handler);
 
-    bool remove_observer(token t) { return _subject.remove_observer(t); }
-    void notify() const { _subject.notify(_value); }
+    bool remove_observer(token t) { return _observers.erase(t) > 0; }
 
    private:
+    void notify() const;
+
     T _value;
-    subject_type _subject;
+    std::unordered_map<token, handler_type> _observers;
 };
+
+template <typename T>
+template <typename Value>
+void value<T>::set_value(Value&& v) {
+    T new_value = std::forward<T>(v);
+
+    if (_value != new_value) {
+        _value = new_value;
+        notify();
+    }
+}
+
+template <typename T>
+template <typename Handler>
+token value<T>::observe(Handler&& handler) {
+    if (!handler) {
+        return {};
+    }
+
+    typename decltype(_observers)::const_iterator it;
+    bool inserted;
+    std::tie(it, inserted) = _observers.emplace(
+        token::unique(), std::forward<Handler>(handler));
+
+    if (!inserted) {
+        return {};
+    }
+
+    return it->first;
+}
+
+template <typename T>
+void value<T>::notify() const {
+    for (auto& entry : _observers) {
+        entry.second(_value);
+    }
+}
 
 }  // namespace observable
