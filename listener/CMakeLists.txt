@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 2.8)
-project(test)
+project(test_observers)
 
 add_definitions( "-std=c++11" )
-add_executable(test main.cpp token_observer.cpp)
+include_directories(src)
 
-
+add_executable(test_observers
+    src/main.cpp
+    src/token/subject.cpp
+    src/auto_token/subject.cpp
+    )

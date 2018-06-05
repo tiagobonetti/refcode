@@ -1,5 +1,5 @@
-#ifndef TIMEVAL_HPP_
-#define TIMEVAL_HPP_
+#pragma once
+
 // C++
 #include <ios>
 #include <ostream>
@@ -56,4 +56,3 @@ inline std::ostream& operator<<(std::ostream& os, const Timeval& t) {
     return os;
 }
 
-#endif  // TIMEVAL_HPP_

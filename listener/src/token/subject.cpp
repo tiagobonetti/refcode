@@ -1,4 +1,4 @@
-#include "token_observer.hpp"
+#include "token/subject.hpp"
 
 namespace tokenobserver {
 
