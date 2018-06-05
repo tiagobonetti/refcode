@@ -1,8 +1,7 @@
 #include <iostream>
 #include <string>
 
-#include "auto_token/test.hpp"
-
+#include "auto_token/subject.hpp"
 #include "shared/observer.hpp"
 #include "token/subject.hpp"
 #include "unique/subject.hpp"
@@ -114,21 +113,42 @@ void test_token(std::size_t subjects_count, std::size_t observers_count) {
               << "  Destroy - " << (end - call) << '\n';
 }
 
-void show_results(std::string header, test_parameters p, test_result r) {
-    std::stringstream ss;
-    auto call_dt = r.call.total_nanoseconds() /
-                   static_cast<int>(p.subjects_count * p.observers_count);
+void test_autotoken(std::size_t subjects_count, std::size_t observers_count) {
+    Timeval start, build, call, end;
+    std::size_t dcall;
 
-    ss << header << '\n'
-       << "  Build - " << r.build << '\n'
-       << "  Call  - " << r.call << " (" << call_dt << "ns/call)" << '\n'
-       << "  Clean - " << r.clean << '\n';
-    std::cout << ss.str();
-}
+    gettimeofday(&start, nullptr);
+    {
+        std::vector<autotokenobserver::subject<>> subjects(subjects_count);
 
-void test_autotoken(test_parameters p) {
-    auto r = autotoken::test(p);
-    show_results(" observer pattern with automatic removel token", p, r);
+        {
+            std::vector<autotokenobserver::token> tokens;
+
+            for (auto& subject : subjects) {
+                for (std::size_t i = 0; i < observers_count; i++) {
+                    tokens.emplace_back(subject.observe([]() {}));
+                }
+            }
+            gettimeofday(&build, nullptr);
+
+            for (auto& subject : subjects) {
+                subject.notify();
+            }
+
+            gettimeofday(&call, nullptr);
+            // destroy tokens
+        }
+        // destroy subjects
+    }
+    gettimeofday(&end, nullptr);
+
+    dcall = ((call - build).tv_sec * 1000 * 1000) + (call - build).tv_usec;
+
+    std::cout << " auto token observer observer\n"
+              << "  Build   - " << (build - start) << '\n'                                            //
+              << "  Call    - " << (call - build)                                                     //
+              << "  total(us/calls)= " << dcall << '/' << (subjects_count * observers_count) << '\n'  //
+              << "  Destroy - " << (end - call) << '\n';
 }
 
 void test(std::size_t subjects_count, std::size_t observers_count) {
@@ -136,7 +156,7 @@ void test(std::size_t subjects_count, std::size_t observers_count) {
     test_unique(subjects_count, observers_count);
     test_shared(subjects_count, observers_count);
     test_token(subjects_count, observers_count);
-    test_autotoken({subjects_count, observers_count});
+    test_autotoken(subjects_count, observers_count);
     std::cout << '\n';
 }
 

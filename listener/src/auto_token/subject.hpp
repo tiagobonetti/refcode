@@ -7,7 +7,7 @@
 #include <tuple>
 #include <unordered_map>
 
-namespace autotokenobserver {
+namespace autotoken {
 
 class removable {
    public:
@@ -81,4 +81,4 @@ void subject<Args...>::notify(Args... args) const {
     }
 }
 
-}  // namespace autotokenobserver
+}  // namespace autotoken

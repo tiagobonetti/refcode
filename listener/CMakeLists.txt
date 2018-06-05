@@ -8,4 +8,7 @@ add_executable(test_observers
     src/main.cpp
     src/token/subject.cpp
     src/auto_token/subject.cpp
+    src/auto_token/test.cpp
     )
+
+# target_link_libraries(test_observers boost_system)

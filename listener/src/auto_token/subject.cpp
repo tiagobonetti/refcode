@@ -1,6 +1,6 @@
 #include "auto_token/subject.hpp"
 
-namespace autotokenobserver {
+namespace autotoken {
 
 using key_type = token::key_type;
 
@@ -28,4 +28,4 @@ token::~token() {
 
 key_type token::unique_key() { return ++_count; }
 
-}  // namespace autotokenobserver
+}  // namespace autotoken
