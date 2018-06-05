@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils.hpp"
+
 #include <functional>
 #include <memory>
 #include <unordered_set>
@@ -43,9 +45,9 @@ class subject {
     }
 
     unique_observer attach(handler_type h) {
-        auto* observer_ = new observer<Args...>(this, h);
-        _observers.insert(observer_);
-        return std::unique_ptr<const observer<Args...>>(observer_);
+        auto o = std::make_unique<observer<Args...>>(this, h);
+        _observers.insert(o.get());
+        return o;
     }
 
     void detach(observer<Args...>& observer) { _observers.erase(&observer); }

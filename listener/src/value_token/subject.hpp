@@ -41,7 +41,7 @@ class subject {
     bool remove_observer(token t) { return _observers.erase(t) > 0; }
 
     void notify(Args... args) const {
-        for (auto& entry : _observers) {
+        for (auto const& entry : _observers) {
             entry.second(args...);
         }
     }

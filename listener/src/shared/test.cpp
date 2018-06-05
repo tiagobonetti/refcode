@@ -1,6 +1,6 @@
 #include "shared/test.hpp"
 
-#include "shared/observer.hpp"
+#include "shared/subject.hpp"
 
 namespace shared {
 

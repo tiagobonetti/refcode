@@ -76,7 +76,7 @@ token subject<Args...>::observe(Handler&& handler) {
 
 template <typename... Args>
 void subject<Args...>::notify(Args... args) const {
-    for (auto& entry : _observers) {
+    for (auto const& entry : _observers) {
         entry.second(args...);
     }
 }

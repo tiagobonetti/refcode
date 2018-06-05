@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project(test_observers)
 
 add_definitions( "-std=c++11" )
+
 include_directories(src)
 
 add_executable(test_observers
@@ -14,4 +15,6 @@ add_executable(test_observers
     src/unique/test.cpp
     )
 
-# target_link_libraries(test_observers boost_system)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
