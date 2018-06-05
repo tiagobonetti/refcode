@@ -5,7 +5,7 @@
 #include <tuple>
 #include <unordered_map>
 
-namespace tokenobserver {
+namespace valuetoken {
 
 struct token {
     using value_type = std::size_t;
@@ -50,11 +50,11 @@ class subject {
     std::unordered_map<token, observer_type> _observers;
 };
 
-}  // namespace tokenobserver
+}  // namespace valuetoken
 
 namespace std {
 template <>
-struct hash<tokenobserver::token> {
-    constexpr std::size_t operator()(tokenobserver::token const& t) const { return t.value; }
+struct hash<valuetoken::token> {
+    constexpr std::size_t operator()(valuetoken::token const& t) const { return t.value; }
 };
 }  // namespace std
