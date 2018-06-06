@@ -50,7 +50,7 @@ void test(std::size_t subjects_count, std::size_t observers_count) {
 }
 
 int main() {
-    test(10000000, 1);
-    test(1, 10000000);
-    test(1000, 10000);
+    test(1000000, 1);
+    test(1, 1000000);
+    test(1000, 1000);
 }

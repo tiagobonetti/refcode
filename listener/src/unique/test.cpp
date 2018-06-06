@@ -7,6 +7,8 @@ namespace unique {
 using boost::posix_time::microsec_clock;
 
 test_result test(test_parameters p) {
+    unsigned call_count = 0;
+
     auto start = microsec_clock::local_time();
 
     std::vector<unique::subject<>> subjects(p.subjects_count);
@@ -14,7 +16,7 @@ test_result test(test_parameters p) {
 
     for (auto& subject : subjects) {
         for (std::size_t i = 0; i < p.observers_count; i++) {
-            auto observer = subject.attach([]() { /* noop */ });
+            auto observer = subject.attach([&]() { call_count++; });
             observers.push_back(std::move(observer));
         }
     }
@@ -31,6 +33,8 @@ test_result test(test_parameters p) {
     subjects.clear();
 
     auto end = microsec_clock::local_time();
+
+    assert(call_count == p.subjects_count * p.observers_count);
 
     return {(builded - start), (called - builded), (end - called)};
 }

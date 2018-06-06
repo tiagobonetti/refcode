@@ -56,7 +56,8 @@ class subject : public removable {
 
 template <typename... Args>
 template <typename Handler>
-token subject<Args...>::observe(Handler&& handler) {
+token subject<Args...>::observe(Handler&& h) {
+    handler_type handler{std::forward<Handler>(h)};
     if (!handler) {
         return {};
     }
@@ -65,7 +66,7 @@ token subject<Args...>::observe(Handler&& handler) {
 
     typename decltype(_observers)::const_iterator it;
     bool inserted;
-    std::tie(it, inserted) = _observers.emplace(key, std::forward<Handler>(handler));
+    std::tie(it, inserted) = _observers.emplace(key, std::move(handler));
 
     if (!inserted) {
         return {};

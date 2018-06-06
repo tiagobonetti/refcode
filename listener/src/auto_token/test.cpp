@@ -7,6 +7,8 @@ namespace autotoken {
 using boost::posix_time::microsec_clock;
 
 test_result test(test_parameters p) {
+    unsigned call_count = 0;
+
     auto start = microsec_clock::local_time();
 
     // make subjects
@@ -15,7 +17,7 @@ test_result test(test_parameters p) {
     std::vector<token> tokens;
     for (auto& subject : subjects) {
         for (std::size_t i = 0; i < p.observers_count; i++) {
-            tokens.emplace_back(subject.observe([]() {}));
+            tokens.emplace_back(subject.observe([&]() { call_count++; }));
         }
     }
     auto builded = microsec_clock::local_time();
@@ -30,6 +32,8 @@ test_result test(test_parameters p) {
     tokens.clear();
     subjects.clear();
     auto end = microsec_clock::local_time();
+
+    assert(call_count == p.subjects_count * p.observers_count);
 
     return {(builded - start), (called - builded), (end - called)};
 }
