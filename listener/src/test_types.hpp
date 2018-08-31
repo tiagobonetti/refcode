@@ -14,3 +14,7 @@ struct test_result {
     boost::posix_time::time_duration call;
     boost::posix_time::time_duration clean;
 };
+
+inline boost::posix_time::ptime now() {
+    return boost::posix_time::microsec_clock::universal_time();
+}

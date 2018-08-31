@@ -13,6 +13,7 @@ add_executable(test_observers
     src/auto_token/test.cpp
     src/shared/test.cpp
     src/unique/test.cpp
+    src/signals/test.cpp
     )
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")

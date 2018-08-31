@@ -3,6 +3,7 @@
 
 #include "auto_token/test.hpp"
 #include "shared/test.hpp"
+#include "signals/test.hpp"
 #include "unique/test.hpp"
 #include "value_token/test.hpp"
 
@@ -50,6 +51,11 @@ void test_autotoken2(test_parameters p) {
     show_results(" Automatic Removal Token (vector container)", p, r);
 }
 
+void test_signals(test_parameters p) {
+    auto r = signals::test(p);
+    show_results(" Boost.Signals2", p, r);
+}
+
 void test(std::size_t subjects_count, std::size_t observers_count) {
     std::cout << "Test parameters: " << subjects_count << " subjects, " << observers_count << " observers\n";
     test_unique({subjects_count, observers_count});
@@ -58,6 +64,7 @@ void test(std::size_t subjects_count, std::size_t observers_count) {
     test_valuetoken({subjects_count, observers_count});
     test_autotoken({subjects_count, observers_count});
     test_autotoken2({subjects_count, observers_count});
+    test_signals({subjects_count, observers_count});
     std::cout << '\n';
 }
 
