@@ -9,7 +9,7 @@ add_executable(test_observers
     src/main.cpp
     src/value_token/subject.cpp
     src/value_token/test.cpp
-    src/auto_token/subject.cpp
+    src/auto_token/token.cpp
     src/auto_token/test.cpp
     src/shared/test.cpp
     src/unique/test.cpp

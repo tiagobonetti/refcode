@@ -14,4 +14,3 @@ struct test_result {
     boost::posix_time::time_duration call;
     boost::posix_time::time_duration clean;
 };
-
