@@ -1,5 +1,6 @@
 #include "auto_token/test.hpp"
 
+#define BOOST_DISABLE_THREADS
 #include <boost/signals2.hpp>
 
 namespace signals {
@@ -11,9 +12,7 @@ test_result test(test_parameters p) {
 
     // make signals
     //
-
     using signal_type = boost::signals2::signal<void()>;
-
     std::vector<signal_type> signals(p.subjects_count);
 
     // observe all signals
