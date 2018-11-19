@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
-
-project(test)
-add_definitions("-std=c++11")
-add_executable(test main.cpp)
+cmake_minimum_required(VERSION 3.10)
+project(empty)
+add_executable(empty main.cpp)
+target_compile_features(empty PRIVATE cxx_std_17)
