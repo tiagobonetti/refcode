@@ -1,0 +1,6 @@
+[submodule "third-party/asio"]
+	path = third-party/asio
+	url = git@github.com:chriskohlhoff/asio.git
+[submodule "third-party/fmt"]
+	path = third-party/fmt
+	url = git@github.com:fmtlib/fmt.git

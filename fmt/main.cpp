@@ -3,11 +3,13 @@
 #include <sstream>
 
 void print_scaled(double value) {
-    value = (value == 0.0) ? 0.0 : std::clamp(value, 0.0, 100.0);
     std::cout << fmt::format("read value {:f}\n", value);
 
+    value = (value == 0.0) ? 0.0 : std::clamp(value, 0.0, 100.0);
+    std::cout << fmt::format("clamped value {:f}\n", value);
+
     auto scale = value / 100.0;
-    std::cout << fmt::format("scale is   {:f}\n", scale);
+    std::cout << fmt::format("scale is {:f}\n", scale);
 
     auto max = std::numeric_limits<std::uint16_t>::max();
     auto scaled = max * scale;
@@ -17,17 +19,23 @@ void print_scaled(double value) {
     std::cout << fmt::format("rounded std::uint16_t {0:d} (hex: {0:x})\n", rounded);
 }
 
+void print_hex(int v) {
+    std::cout << fmt::format("to_hex {:02x}\n", v);
+}
+
 int main() {
     std::string tmp;
     while (std::getline(std::cin, tmp)) {
         if (tmp == "f") {
             break;
         }
+
         std::stringstream ss(tmp);
         double number;
         ss >> number;
 
         print_scaled(number);
+        print_hex(static_cast<int>(number));
     }
     return 0;
 }
