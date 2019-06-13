@@ -1,0 +1,7 @@
+*.~
+*.swp
+compile_commands.json
+
+build-*/
+build/
+build
